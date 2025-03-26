@@ -2,15 +2,18 @@ const express = require('express');
 const app = express();
 const port = 3000;
 const userRoutes = require('./src/routes/userRoutes');
-const { connectDB } = require('./src/db/db');
+const connectDB = require('./src/db/db');
+const requestLogger = require('./src/middlewares/requestLogger');
+require('dotenv').config();
 
 app.use(express.json());
-app.use(express.static(__dirname)); // Add this line
+app.use(requestLogger);
+app.use(express.static(__dirname + '/src/utils')); // Add this line
 
 async function initialize() {
   try {
-    const db = await connectDB();
-    app.use('/api', userRoutes(db));
+    await connectDB();
+    app.use('/api', userRoutes());
 
     app.listen(port, () => {
       console.log(`Server listening at http://localhost:${port}`);
