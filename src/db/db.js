@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
+require('dotenv').config(); // Load environment variables
 
 const connectDB = async () => {
   try {
-    const uri = "mongodb+srv://shresthaniranjan0:44x3EyPIUjy395uF@cluster0.jznyv.mongodb.net/greenbin?retryWrites=true&w=majority";
+    const uri = process.env.DATABASE_URL; // Use environment variable
+    if (!uri) {
+      throw new Error('DATABASE_URL environment variable is not defined');
+    }
     await mongoose.connect(uri);
     console.log('MongoDB connected');
   } catch (error) {
