@@ -1,6 +1,5 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
-<<<<<<< HEAD
 const jwt = require('jsonwebtoken'); // Import jsonwebtoken
 
 // Helper function to generate JWT
@@ -9,8 +8,6 @@ const generateToken = (id) => {
     expiresIn: '30d', // Token expires in 30 days (adjust as needed)
   });
 };
-=======
->>>>>>> 1ec063542ccd04f3ac4fc7a15f31fe1dcc7cd9ac
 
 async function registerUser(req, res) {
   const { fullName, email, password } = req.body;
@@ -50,7 +47,6 @@ async function loginUser(req, res) {
       return res.status(401).json({ message: 'Invalid credentials.', success: false });
     }
 
-<<<<<<< HEAD
     // Generate token
     const token = generateToken(user._id);
 
@@ -65,10 +61,6 @@ async function loginUser(req, res) {
         email: user.email,
       }
     });
-=======
-    // Send a success response
-    res.status(200).json({ message: 'Login successful!', success: true });
->>>>>>> 1ec063542ccd04f3ac4fc7a15f31fe1dcc7cd9ac
   } catch (error) {
     console.error("Error logging in:", error);
     res.status(500).json({ message: 'An error occurred during login.' });

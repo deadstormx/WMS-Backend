@@ -14,10 +14,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-<<<<<<< HEAD
     "jsonwebtoken": "^9.0.2",
-=======
->>>>>>> 1ec063542ccd04f3ac4fc7a15f31fe1dcc7cd9ac
     "mongodb": "^6.15.0",
     "mongoose": "^8.13.0"
   }
