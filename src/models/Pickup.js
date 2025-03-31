@@ -8,22 +8,15 @@ const pickupSchema = new mongoose.Schema({
   },
   pickupLocation: {
     type: {
-      type: String, // GeoJSON type
+      type: String,
       enum: ['Point'],
-      required: true,
+      default: 'Point',
+      required: true
     },
     coordinates: {
-      type: [Number], // [longitude, latitude]
-      required: true,
-    },
-    address: {
-      type: String,
-      required: true,
-    },
-  },
-  itemsDescription: {
-    type: String,
-    required: true,
+      type: [Number], // Array of numbers [longitude, latitude]
+      required: true
+    }
   },
   requestedTime: {
     type: Date,
@@ -34,11 +27,30 @@ const pickupSchema = new mongoose.Schema({
     enum: ['pending', 'accepted', 'completed', 'cancelled'],
     default: 'pending',
   },
-  // Add any other relevant fields
+  pickupDateTime: {
+    type: Date,
+    required: true,
+  },
+  subscription: {
+    type: String,
+    required: true,
+  },
+  wasteType: {
+    type: String,
+    enum: ['organic', 'non-organic', 'both'],
+    required: true,
+  },
+  amount: {
+    type: Number,
+    required: true,
+  },
+  unit: {
+    type: String,
+    required: true,
+    enum: ['kg', 'lbs'], // Example units
+  }
 }, { timestamps: true });
 
-// Index for geospatial queries if needed
-pickupSchema.index({ pickupLocation: '2dsphere' });
 
 // Explicitly set the collection name to 'pickup' (singular)
 const Pickup = mongoose.model('Pickup', pickupSchema, 'pickup');

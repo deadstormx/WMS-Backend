@@ -1,5 +1,12 @@
 const Pickup = require('../models/Pickup');
 const User = require('../models/User'); // Assuming you need user info
+const NodeGeocoder = require('node-geocoder');
+
+const options = {
+  provider: 'openstreetmap'
+};
+
+const geocoder = NodeGeocoder(options);
 
 // @desc    Create a new pickup request
 // @route   POST /api/pickups
@@ -15,28 +22,37 @@ const createPickupRequest = async (req, res) => {
       return res.status(401).json({ message: 'User not authenticated or ID missing' });
     }
 
-    const { pickupLocation, itemsDescription, address } = req.body; // Removed userId from here
+    const { address, pickupDateTime, subscription, wasteType, amount, unit } = req.body; // Removed userId from here
 
     // Basic validation
-    if (!pickupLocation || !pickupLocation.coordinates || !itemsDescription || !address) {
+    if (!address || !pickupDateTime || !subscription || !wasteType || !amount || !unit) {
       return res.status(400).json({ message: 'Missing required fields for pickup request' });
     }
 
-    // Validate coordinates format if needed
-    if (!Array.isArray(pickupLocation.coordinates) || pickupLocation.coordinates.length !== 2) {
-        return res.status(400).json({ message: 'Invalid coordinates format. Use [longitude, latitude].' });
-    }
+    // Geocode the address
+    // const geocodeResult = await geocoder.geocode(address);
+    // if (!geocodeResult || geocodeResult.length === 0) {
+    //   return res.status(400).json({ message: 'Unable to geocode address' });
+    // }
+
+    // const { latitude, longitude } = geocodeResult[0];
+
+    // Replace with actual latitude and longitude for Kathmandu
+    const latitude = 27.7172;
+    const longitude = 85.3240;
 
     const newPickup = new Pickup({
       userId,
+      pickupDateTime,
+      subscription,
+      wasteType,
+      amount,
+      unit,
       pickupLocation: {
         type: 'Point',
-        coordinates: pickupLocation.coordinates, // [longitude, latitude]
-        address: address,
+        coordinates: [longitude, latitude],
       },
-      itemsDescription,
       // requestedTime is defaulted by schema
-      // status is defaulted by schema
     });
 
     const savedPickup = await newPickup.save();
@@ -47,11 +63,12 @@ const createPickupRequest = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating pickup request:', error);
-    // More specific error handling can be added (e.g., validation errors)
     if (error.name === 'ValidationError') {
-        return res.status(400).json({ message: 'Validation Error', errors: error.errors });
+      return res.status(400).json({ message: 'Validation Error', errors: error.errors });
+    } else {
+      console.error('Unexpected error:', error);
+      return res.status(500).json({ message: 'Server error creating pickup request', error: error.message });
     }
-    res.status(500).json({ message: 'Server error creating pickup request' });
   }
 };
 
