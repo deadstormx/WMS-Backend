@@ -74,7 +74,130 @@ const createPickupRequest = async (req, res) => {
 
 // Add other controller functions as needed (e.g., getPickups, updatePickupStatus)
 
+// @desc    Get pickup history for a user
+// @route   GET /api/pickups/history
+// @access  Private
+const getPickupHistory = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated or ID missing' });
+    }
+
+    const pickups = await Pickup.find({ userId }).sort({ pickupDateTime: -1 });
+
+    res.status(200).json({
+      message: 'Pickup history retrieved successfully',
+      pickups: pickups,
+    });
+  } catch (error) {
+    console.error('Error retrieving pickup history:', error);
+    return res.status(500).json({ message: 'Server error retrieving pickup history', error: error.message });
+  }
+};
+
 module.exports = {
   createPickupRequest,
-  // Export other functions here
+  getPickupHistory,
+};
+
+// @desc    Update a pickup request
+// @route   PUT /api/pickups/:id
+// @access  Private
+const updatePickup = async (req, res) => {
+  try {
+    const pickupId = req.params.id;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated or ID missing' });
+    }
+
+    const pickup = await Pickup.findById(pickupId);
+
+    if (!pickup) {
+      return res.status(404).json({ message: 'Pickup request not found' });
+    }
+
+    if (pickup.userId.toString() !== userId) {
+      return res.status(403).json({ message: 'Unauthorized: You can only update your own pickup requests' });
+    }
+
+    // Update the pickup with the request body
+    const { address, pickupDateTime, subscription, wasteType, amount, unit } = req.body;
+
+     // Geocode the address
+    // const geocodeResult = await geocoder.geocode(address);
+    // if (!geocodeResult || geocodeResult.length === 0) {
+    //   return res.status(400).json({ message: 'Unable to geocode address' });
+    // }
+
+    // const { latitude, longitude } = geocodeResult[0];
+
+    // Replace with actual latitude and longitude for Kathmandu
+    const latitude = 27.7172;
+    const longitude = 85.3240;
+
+    pickup.pickupLocation = {
+        type: 'Point',
+        coordinates: [longitude, latitude],
+      };
+    pickup.pickupDateTime = pickupDateTime;
+    pickup.subscription = subscription;
+    pickup.wasteType = wasteType;
+    pickup.amount = amount;
+    pickup.unit = unit;
+
+    const updatedPickup = await pickup.save();
+
+    res.status(200).json({
+      message: 'Pickup request updated successfully',
+      pickup: updatedPickup,
+    });
+  } catch (error) {
+    console.error('Error updating pickup request:', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: 'Validation Error', errors: error.errors });
+    }
+    return res.status(500).json({ message: 'Server error updating pickup request', error: error.message });
+  }
+};
+
+// @desc    Cancel a pickup request
+// @route   DELETE /api/pickups/:id
+// @access  Private
+const cancelPickup = async (req, res) => {
+  try {
+    const pickupId = req.params.id;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated or ID missing' });
+    }
+
+    const pickup = await Pickup.findById(pickupId);
+
+    if (!pickup) {
+      return res.status(404).json({ message: 'Pickup request not found' });
+    }
+
+    if (pickup.userId.toString() !== userId) {
+      return res.status(403).json({ message: 'Unauthorized: You can only cancel your own pickup requests' });
+    }
+
+    await Pickup.findByIdAndDelete(pickupId);
+
+    res.status(200).json({ message: 'Pickup request cancelled successfully' });
+  } catch (error) {
+    console.error('Error cancelling pickup request:', error);
+    return res.status(500).json({ message: 'Server error cancelling pickup request', error: error.message });
+  }
+};
+
+module.exports = {
+  createPickupRequest,
+  getPickupHistory,
+  updatePickup,
+  cancelPickup
 };
