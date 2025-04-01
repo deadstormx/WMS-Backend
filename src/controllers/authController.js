@@ -38,6 +38,7 @@ async function loginUser(req, res) {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
+        address: user.address // Include the address here
       }
     });
   } catch (error) {

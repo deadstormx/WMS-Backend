@@ -1,7 +1,8 @@
 const User = require('../models/User');
 
 async function registerUser(req, res) {
-  const { fullName, email, password } = req.body;
+  // Destructure address along with other fields
+  const { fullName, email, password, address } = req.body;
   try {
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -9,7 +10,8 @@ async function registerUser(req, res) {
       return res.status(400).json({ message: 'User already exists.' });
     }
 
-    const newUser = new User({ fullName, email, password });
+    // Include address when creating the new user
+    const newUser = new User({ fullName, email, password, address });
     await newUser.save();
 
     // Send a response back to the frontend
