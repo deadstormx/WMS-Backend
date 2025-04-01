@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser, logoutUser } = require('../controllers/userController');
-const { protect } = require('../middlewares/authMiddleware'); // Import the protect middleware
+const { registerUser } = require('../controllers/userController');
+// const { protect } = require('../middlewares/authMiddleware'); // protect middleware might not be needed here anymore unless other user routes need it
 
 // Public routes
 router.post('/register', registerUser);
-router.post('/login', loginUser);
 
-// Protected routes
-router.post('/logout', protect, logoutUser); // Add the logout route and protect it
+// If there are other user-specific protected routes, they would go here
+// Example: router.get('/profile', protect, getUserProfile);
 
 module.exports = () => router;

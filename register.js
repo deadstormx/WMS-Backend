@@ -3,6 +3,7 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 const userRoutes = require('./src/routes/userRoutes');
+const authRoutes = require('./src/routes/authRoutes'); // Import auth routes
 const pickupRoutes = require('./src/routes/pickupRoutes'); // Import user pickup routes
 const pickupAdminRoutes = require('./src/routes/admin/pickupAdminRoutes'); // Import admin pickup routes
 const connectDB = require('./src/db/db');
@@ -21,7 +22,8 @@ app.use(express.static(__dirname + '/src/utils')); // Add this line
 async function initialize() {
   try {
     await connectDB();
-    app.use('/api/users', userRoutes()); // Mount user routes
+    app.use('/api/users', userRoutes()); // Mount user routes (register)
+    app.use('/api/auth', authRoutes()); // Mount auth routes (login, logout)
     app.use('/api/pickups', pickupRoutes); // Mount user pickup routes
     app.use('/api/admin/pickups', pickupAdminRoutes); // Mount admin pickup routes
 
