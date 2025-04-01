@@ -65,6 +65,17 @@ async function loginUser(req, res) {
     console.error("Error logging in:", error);
     res.status(500).json({ message: 'An error occurred during login.' });
   }
-}
+};
 
-module.exports = { registerUser, loginUser };
+// @desc    Logout user / Clear cookie (if applicable)
+// @route   POST /api/users/logout
+// @access  Private (requires token)
+const logoutUser = (req, res) => {
+  // For JWT in headers, the main action is on the client (clearing the token).
+  // If using cookies for JWT, you'd clear the cookie here:
+  // res.cookie('jwt', '', { httpOnly: true, expires: new Date(0) });
+  res.status(200).json({ message: 'User logged out successfully' });
+};
+
+
+module.exports = { registerUser, loginUser, logoutUser };

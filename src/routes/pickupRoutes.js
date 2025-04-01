@@ -1,5 +1,6 @@
 const express = require('express');
-const { createPickupRequest, getPickupHistory } = require('../controllers/pickup_controller');
+// Removed getAllPickups import as it's no longer used here
+const { createPickupRequest, getPickupHistory, updatePickup, cancelPickup } = require('../controllers/pickup_controller');
 // Import your authentication middleware here if needed
 const { protect } = require('../middlewares/authMiddleware'); // Import the protect middleware
 
@@ -21,10 +22,7 @@ router.get(
   '/history',
   protect,
   getPickupHistory
-);
-
-// Add other routes for pickup management as needed
-const { updatePickup, cancelPickup } = require('../controllers/pickup_controller');
+); // Added closing parenthesis and semicolon
 
 // @route   PUT /api/pickups/:id
 // @desc    Update a pickup request
@@ -47,5 +45,7 @@ router.delete(
 // Add other routes for pickup management as needed
 // e.g., router.get('/', protect, getPickups);
 // e.g., router.patch('/:id/status', protect, updatePickupStatus);
+
+// Admin routes removed - moved to src/routes/admin/pickupAdminRoutes.js
 
 module.exports = router;

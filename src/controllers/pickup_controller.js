@@ -199,5 +199,6 @@ module.exports = {
   createPickupRequest,
   getPickupHistory,
   updatePickup,
-  cancelPickup
+  cancelPickup,
+  // getAllPickups removed - moved to admin controller
 };
