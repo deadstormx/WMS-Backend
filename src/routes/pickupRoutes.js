@@ -1,6 +1,6 @@
 const express = require('express');
 // Removed getAllPickups import as it's no longer used here
-const { createPickupRequest, getPickupHistory, updatePickup, cancelPickup } = require('../controllers/pickup_controller');
+const { createPickupRequest, getUserPickups, updatePickup, cancelPickup } = require('../controllers/pickup_controller');
 // Import your authentication middleware here if needed
 const { protect } = require('../middlewares/authMiddleware'); // Import the protect middleware
 
@@ -21,8 +21,8 @@ router.post(
 router.get(
   '/history',
   protect,
-  getPickupHistory
-); // Added closing parenthesis and semicolon
+  getUserPickups // Use the renamed controller function
+);
 
 // @route   PUT /api/pickups/:id
 // @desc    Update a pickup request

@@ -72,12 +72,10 @@ const createPickupRequest = async (req, res) => {
   }
 };
 
-// Add other controller functions as needed (e.g., getPickups, updatePickupStatus)
-
-// @desc    Get pickup history for a user
+// @desc    Get pickup history for a specific user
 // @route   GET /api/pickups/history
 // @access  Private
-const getPickupHistory = async (req, res) => {
+const getUserPickups = async (req, res) => {
   try {
     const userId = req.user?.id;
 
@@ -88,19 +86,36 @@ const getPickupHistory = async (req, res) => {
     const pickups = await Pickup.find({ userId }).sort({ pickupDateTime: -1 });
 
     res.status(200).json({
-      message: 'Pickup history retrieved successfully',
+      message: 'Pickup history retrieved successfully for user',
       pickups: pickups,
     });
   } catch (error) {
-    console.error('Error retrieving pickup history:', error);
-    return res.status(500).json({ message: 'Server error retrieving pickup history', error: error.message });
+    console.error('Error retrieving pickup history for user:', error);
+    return res.status(500).json({ message: 'Server error retrieving pickup history for user', error: error.message });
   }
 };
 
-module.exports = {
-  createPickupRequest,
-  getPickupHistory,
+// @desc    Get all pickup history (for admin)
+// @route   GET /api/admin/pickups/history
+// @access  Private (Admin) - Ideally behind admin auth middleware
+const getAllPickupsForAdmin = async (req, res) => {
+  try {
+    // Fetch all pickups and populate user details
+    const allPickups = await Pickup.find({})
+                                   .populate('userId', 'fullName email') 
+                                   .sort({ pickupDateTime: -1 });
+
+    res.status(200).json({
+      message: 'All pickup history retrieved successfully (admin)',
+      count: allPickups.length,
+      pickups: allPickups,
+    });
+  } catch (error) {
+    console.error('Error retrieving all pickup history (admin):', error);
+    return res.status(500).json({ message: 'Server error retrieving all pickup history (admin)', error: error.message });
+  }
 };
+
 
 // @desc    Update a pickup request
 // @route   PUT /api/pickups/:id
@@ -195,10 +210,11 @@ const cancelPickup = async (req, res) => {
   }
 };
 
+
 module.exports = {
   createPickupRequest,
-  getPickupHistory,
+  getUserPickups, // Renamed from getPickupHistory
+  getAllPickupsForAdmin,
   updatePickup,
   cancelPickup,
-  // getAllPickups removed - moved to admin controller
 };

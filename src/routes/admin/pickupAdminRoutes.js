@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAllPickups } = require('../../controllers/admin/pickupAdminController'); // Adjust path
+const { getAllPickupsForAdmin } = require('../../controllers/pickup_controller'); // Use the main pickup controller
 const { protect } = require('../../middlewares/authMiddleware'); // Adjust path
 // TODO: Import and add isAdmin middleware if available
 
@@ -12,7 +12,7 @@ router.get(
   '/history',
   protect, // Apply auth middleware
   // TODO: Add isAdmin middleware here if implemented
-  getAllPickups
+  getAllPickupsForAdmin // Use the correct controller function
 );
 
 module.exports = router;

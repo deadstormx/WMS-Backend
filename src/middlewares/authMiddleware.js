@@ -21,7 +21,12 @@ const protect = async (req, res, next) => {
       req.user = await User.findById(decoded.id).select('-password');
 
       if (!req.user) {
-          return res.status(401).json({ message: 'Not authorized, user not found' });
+        return res.status(401).json({ message: 'Not authorized, user not found' });
+      }
+
+      // Basic role-based authorization (for admin routes)
+      if (req.path.startsWith('/admin') && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Not authorized, admin access required' });
       }
 
       next(); // Proceed to the next middleware or route handler
