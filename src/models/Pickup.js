@@ -11,12 +11,12 @@ const pickupSchema = new mongoose.Schema({
       type: String,
       enum: ['Point'],
       default: 'Point',
-      required: true
+      required: true,
     },
     coordinates: {
-      type: [Number], // Array of numbers [longitude, latitude]
-      required: true
-    }
+      type: [Number],
+      required: true,
+    },
   },
   requestedTime: {
     type: Date,
@@ -37,7 +37,7 @@ const pickupSchema = new mongoose.Schema({
   },
   wasteType: {
     type: String,
-    enum: ['organic', 'non-organic', 'both'],
+    enum: ['organic', 'recyclable','non-recyclable', 'all'],
     required: true,
   },
   amount: {
@@ -46,13 +46,12 @@ const pickupSchema = new mongoose.Schema({
   },
   unit: {
     type: String,
+    enum: ['kg', 'g'],
     required: true,
-    enum: ['kg', 'lbs'], // Example units
-  }
+  },
 }, { timestamps: true });
 
-
-// Explicitly set the collection name to 'pickup' (singular)
+// Explicitly set collection name to 'pickup'
 const Pickup = mongoose.model('Pickup', pickupSchema, 'pickup');
 
 module.exports = Pickup;
