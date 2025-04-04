@@ -1,6 +1,6 @@
 const express = require('express');
-const { getAllPickupsForAdmin } = require('../../controllers/pickup_controller'); // Use the main pickup controller
-const { protect } = require('../../middlewares/authMiddleware'); // Adjust path
+const { getAllPickupsForAdmin } = require('../../controllers/pickups'); // Use the main pickup controller
+const { protect } = require('../../../middleware/auth'); // Adjust path
 // TODO: Import and add isAdmin middleware if available
 
 const router = express.Router();

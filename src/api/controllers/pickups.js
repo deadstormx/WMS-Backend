@@ -1,5 +1,5 @@
-const Pickup = require('../models/Pickup');
-const User = require('../models/User'); // Assuming you need user info
+const Pickup = require('../../models/Pickup');
+const User = require('../../models/User'); // Assuming you need user info
 const NodeGeocoder = require('node-geocoder');
 
 const options = {
@@ -29,29 +29,16 @@ const createPickupRequest = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields for pickup request' });
     }
 
-    // Geocode the address
-    // const geocodeResult = await geocoder.geocode(address);
-    // if (!geocodeResult || geocodeResult.length === 0) {
-    //   return res.status(400).json({ message: 'Unable to geocode address' });
-    // }
-
-    // const { latitude, longitude } = geocodeResult[0];
-
-    // Replace with actual latitude and longitude for Kathmandu
-    const latitude = 27.7172;
-    const longitude = 85.3240;
+    // Removed geocoding logic as we now store the address string directly
 
     const newPickup = new Pickup({
       userId,
+      address, // Use the address string directly from req.body
       pickupDateTime,
       subscription,
       wasteType,
       amount,
       unit,
-      pickupLocation: {
-        type: 'Point',
-        coordinates: [longitude, latitude],
-      },
       // requestedTime is defaulted by schema
     });
 
@@ -142,22 +129,9 @@ const updatePickup = async (req, res) => {
     // Update the pickup with the request body
     const { address, pickupDateTime, subscription, wasteType, amount, unit } = req.body;
 
-     // Geocode the address
-    // const geocodeResult = await geocoder.geocode(address);
-    // if (!geocodeResult || geocodeResult.length === 0) {
-    //   return res.status(400).json({ message: 'Unable to geocode address' });
-    // }
+    // Removed geocoding logic
 
-    // const { latitude, longitude } = geocodeResult[0];
-
-    // Replace with actual latitude and longitude for Kathmandu
-    const latitude = 27.7172;
-    const longitude = 85.3240;
-
-    pickup.pickupLocation = {
-        type: 'Point',
-        coordinates: [longitude, latitude],
-      };
+    pickup.address = address; // Update the address field directly
     pickup.pickupDateTime = pickupDateTime;
     pickup.subscription = subscription;
     pickup.wasteType = wasteType;
@@ -210,11 +184,46 @@ const cancelPickup = async (req, res) => {
   }
 };
 
+// Function to handle pickup location input (Updated for consistency)
+const addPickupLocation = async (req, res) => {
+  try {
+    // Use lowercase 'address' consistent with other functions
+    const { address, pickupDateTime, subscription, wasteType, amount, unit } = req.body;
+    const userId = req.user?.id; // Assuming user ID is available in req.user
+
+    // Validate input data
+    if (!address || !pickupDateTime || !subscription || !wasteType || !amount || !unit) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Removed geocoding logic
+
+    // Create a new Pickup object
+    const pickup = new Pickup({
+      userId,
+      address, // Use the address string directly
+      pickupDateTime,
+      subscription,
+      wasteType,
+      amount,
+      unit
+    });
+
+    // Save the Pickup object to the database
+    const savedPickup = await pickup.save();
+
+    res.status(201).json({ message: 'Pickup location added successfully', pickup: savedPickup });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to add pickup location', error: error.message });
+  }
+};
 
 module.exports = {
-  createPickupRequest,
-  getUserPickups, // Renamed from getPickupHistory
-  getAllPickupsForAdmin,
-  updatePickup,
-  cancelPickup,
+  createPickupRequest: createPickupRequest,
+  getUserPickups: getUserPickups, // Renamed from getPickupHistory
+  getAllPickupsForAdmin: getAllPickupsForAdmin,
+  updatePickup: updatePickup,
+  cancelPickup: cancelPickup,
+  addPickupLocation: addPickupLocation
 };

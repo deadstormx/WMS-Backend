@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const User = require('../../models/User');
 
 async function registerUser(req, res) {
   // Destructure address along with other fields

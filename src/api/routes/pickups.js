@@ -1,8 +1,8 @@
 const express = require('express');
 // Removed getAllPickups import as it's no longer used here
-const { createPickupRequest, getUserPickups, updatePickup, cancelPickup } = require('../controllers/pickup_controller');
+const { createPickupRequest, getUserPickups, updatePickup, cancelPickup, addPickupLocation } = require('../controllers/pickups');
 // Import your authentication middleware here if needed
-const { protect } = require('../middlewares/authMiddleware'); // Import the protect middleware
+const { protect } = require('../../middleware/auth'); // Import the protect middleware
 
 const router = express.Router();
 
@@ -41,6 +41,16 @@ router.delete(
   protect,
   cancelPickup
 );
+
+// @route   POST /api/pickups/location
+// @desc    Add pickup location
+// @access  Private (requires authentication)
+router.post(
+  '/location',
+  protect,
+  addPickupLocation
+);
+
 
 // Add other routes for pickup management as needed
 // e.g., router.get('/', protect, getPickups);

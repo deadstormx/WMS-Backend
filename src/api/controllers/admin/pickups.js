@@ -1,5 +1,5 @@
-const Pickup = require('../../models/Pickup'); // Adjust path as needed
-const User = require('../../models/User'); // Adjust path as needed
+const Pickup = require('../../../models/Pickup'); // Adjust path as needed
+const User = require('../../../models/User'); // Adjust path as needed
 
 // @desc    Get all pickup requests (for admin panel)
 // @route   GET /api/admin/pickups/history

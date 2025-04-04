@@ -6,17 +6,9 @@ const pickupSchema = new mongoose.Schema({
     ref: 'User', // Assuming you have a User model
     required: true,
   },
-  pickupLocation: {
-    type: {
-      type: String,
-      enum: ['Point'],
-      default: 'Point',
-      required: true,
-    },
-    coordinates: {
-      type: [Number],
-      required: true,
-    },
+  address: { // Changed from pickupLocation object to simple address string
+    type: String,
+    required: true,
   },
   requestedTime: {
     type: Date,

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser } = require('../controllers/userController');
-// const { protect } = require('../middlewares/authMiddleware'); // protect middleware might not be needed here anymore unless other user routes need it
+const { registerUser } = require('../controllers/users');
+// const { protect } = require('../../middleware/auth'); // protect middleware might not be needed here anymore unless other user routes need it
 
 // Public routes
 router.post('/register', registerUser);
