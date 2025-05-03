@@ -4,7 +4,8 @@
   "description": "",
   "main": "register.js",
   "scripts": {
-    "start": "node register.js"
+    "start": "node register.js",
+    "dev": "nodemon register.js"
   },
   "keywords": [],
   "author": "",
@@ -18,5 +19,8 @@
     "mongodb": "^6.15.0",
     "mongoose": "^8.13.0",
     "node-geocoder": "^4.4.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }

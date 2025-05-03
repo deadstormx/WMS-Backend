@@ -7,6 +7,7 @@ const authRoutes = require('./src/api/routes/auth'); // Import auth routes
 const pickupRoutes = require('./src/api/routes/pickups'); // Import user pickup routes
 const pickupAdminRoutes = require('./src/api/routes/admin/pickups'); // Import admin pickup routes
 const collectionRoutes = require('./src/api/routes/collections'); // Import collection routes
+const routeRoutes = require('./src/api/routes/routeRoutes'); // Import route routes
 const connectDB = require('./src/db/db');
 const requestLogger = require('./src/middleware/requestLogger');
 const User = require('./src/models/User'); // Import User model
@@ -56,6 +57,7 @@ async function initialize() {
     app.use('/api/pickups', pickupRoutes); // Mount user pickup routes
     app.use('/api/admin/pickups', pickupAdminRoutes); // Mount admin pickup routes
     app.use('/api/collections', collectionRoutes); // Mount collection routes
+    app.use('/api', routeRoutes); // Mount route routes
 
     app.listen(port, () => {
       console.log(`Server listening at http://localhost:${port}`);
