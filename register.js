@@ -6,7 +6,7 @@ const userRoutes = require('./src/api/routes/users');
 const authRoutes = require('./src/api/routes/auth'); // Import auth routes
 const pickupRoutes = require('./src/api/routes/pickups'); // Import user pickup routes
 const pickupAdminRoutes = require('./src/api/routes/admin/pickups'); // Import admin pickup routes
-const collectionRoutes = require('./src/api/routes/collections'); // Import collection routes
+const collectionRoutes = require('./src/api/routes/collections');
 const connectDB = require('./src/db/db');
 const requestLogger = require('./src/middleware/requestLogger');
 const User = require('./src/models/User'); // Import User model
@@ -55,10 +55,10 @@ async function initialize() {
     app.use('/api/auth', authRoutes()); // Mount auth routes (login, logout)
     app.use('/api/pickups', pickupRoutes); // Mount user pickup routes
     app.use('/api/admin/pickups', pickupAdminRoutes); // Mount admin pickup routes
-    app.use('/api/collections', collectionRoutes); // Mount collection routes
+    app.use('/api/collections', collectionRoutes);
 
     app.listen(port, () => {
-      console.log(`Server listening at http://localhost:${port}`);
+      console.log(`Server is running on port ${port}`);
     });
   } catch (error) {
     console.error("Initialization failed:", error);
