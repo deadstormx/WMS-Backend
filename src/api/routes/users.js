@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser } = require('../controllers/users');
+const { registerUser, verifyOtp } = require('../controllers/users');
 // const { protect } = require('../../middleware/auth'); // protect middleware might not be needed here anymore unless other user routes need it
 
 // Public routes
 router.post('/register', registerUser);
+router.post('/verify-otp', verifyOtp);
 
 // If there are other user-specific protected routes, they would go here
 // Example: router.get('/profile', protect, getUserProfile);

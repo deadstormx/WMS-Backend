@@ -3,45 +3,33 @@ const mongoose = require('mongoose');
 const collectionSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    ref: 'User' // Reference to the User model
+    ref: 'User',
+    required: true
   },
-  collectionDate: {
-    type: Date,
-    required: true,
-    default: Date.now
+  type: {
+    type: String,
+    enum: ['recyclable', 'non-recyclable', 'organic', 'electric'],
+    required: true
   },
-  organicCollected: {
+  amount: {
     type: Number,
-    required: true,
     default: 0
-  },
-  recyclableCollected: {
-    type: Number,
-    required: true,
-    default: 0
-  },
-  electricCollection: {
-    type: Number,
-    required: true,
-    default: 0
-  },
-  nonRecyclableCollection: {
-    type: Number,
-    required: true,
-    default: 0
-  },
-  totalCollected: {
-    type: Number,
-    required: true,
-    default: 0 // Initially 0, might be calculated later or updated separately
   },
   notes: {
     type: String,
-    trim: true
+    default: ''
+  },
+  collectionDate: {
+    type: Date,
+    default: Date.now
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'cancelled'],
+    default: 'pending'
   }
 }, {
-  timestamps: true // Adds createdAt and updatedAt timestamps
+  timestamps: true
 });
 
-module.exports = mongoose.model('Collection', collectionSchema);
+module.exports = mongoose.model('Collection', collectionSchema); 
