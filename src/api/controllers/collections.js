@@ -9,12 +9,9 @@ const createCollection = async (req, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const { type, amount, notes, collectionDate } = req.body;
+    const { type, amount, notes, status } = req.body;
 
-    // Validate collection type
-    if (!['recyclable', 'non-recyclable', 'organic', 'electric'].includes(type)) {
-      return res.status(400).json({ message: 'Invalid collection type' });
-    }
+    // No type validation, allow any string
 
     // Create new collection
     const newCollection = new Collection({
@@ -22,7 +19,7 @@ const createCollection = async (req, res) => {
       type,
       amount: amount || 0,
       notes,
-      collectionDate
+      status: status || 'pending'
     });
 
     const savedCollection = await newCollection.save();
@@ -75,10 +72,7 @@ const getCollectionsByType = async (req, res) => {
     }
 
     const { type } = req.params;
-    if (!['recyclable', 'non-recyclable', 'organic', 'electric'].includes(type)) {
-      return res.status(400).json({ message: 'Invalid collection type' });
-    }
-
+    // No type validation here
     const collections = await Collection.find({ 
       user: req.user.id,
       type 

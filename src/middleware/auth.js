@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User'); // Assuming your user model path
 
+const ADMIN_EMAIL = 'greenbinpvtltd@gmail.com';
+const ADMIN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTY0YzY3N2Y0MTQ0MmJmMWY2NmU0OCIsImlhdCI6MTc0NjI5MTg3NCwiZXhwIjoxNzQ4ODgzODc0fQ.RnHnhrrQ3APBEaA7qSPNpVutXsUo89A4SeAAXqUubSU';
+
 const protect = async (req, res, next) => {
   let token;
 
@@ -24,9 +27,17 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ message: 'Not authorized, user not found' });
       }
 
-      // Basic role-based authorization (for admin routes)
-      if (req.path.startsWith('/admin') && req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Not authorized, admin access required' });
+      // Restrict access to route and collection APIs to only the specified admin
+      const isRouteOrCollection =
+        req.originalUrl.startsWith('/api/collections') ||
+        req.originalUrl.startsWith('/api/route');
+      if (isRouteOrCollection) {
+        if (
+          req.user.email !== ADMIN_EMAIL ||
+          token !== ADMIN_TOKEN
+        ) {
+          return res.status(403).json({ message: 'Not authorized, admin access required' });
+        }
       }
 
       next(); // Proceed to the next middleware or route handler

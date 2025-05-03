@@ -8,7 +8,6 @@ const collectionSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['recyclable', 'non-recyclable', 'organic', 'electric'],
     required: true
   },
   amount: {
@@ -19,14 +18,11 @@ const collectionSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
-  collectionDate: {
-    type: Date,
-    default: Date.now
-  },
   status: {
     type: String,
     enum: ['pending', 'completed', 'cancelled'],
-    default: 'pending'
+    default: 'pending',
+    required: true
   }
 }, {
   timestamps: true

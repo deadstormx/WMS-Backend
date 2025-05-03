@@ -36,6 +36,8 @@ const createDefaultAdmin = async () => {
         email: adminEmail,
         password: adminPassword,
         role: 'admin', // Set role to admin
+        phoneNumber: '+1234567890', // <-- Add a valid phone number
+        address: 'Admin Address' // <-- Add an address (optional, but good practice)
       });
       await adminUser.save();
       console.log('Default admin user created successfully.');
