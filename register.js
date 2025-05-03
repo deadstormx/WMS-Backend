@@ -60,7 +60,7 @@ async function initialize() {
     app.use('/api', routeRoutes); // Mount route routes
 
     app.listen(port, () => {
-      console.log(`Server is running on port ${port}`);
+      console.log(`Server listening at http://localhost:${port}`);
     });
   } catch (error) {
     console.error("Initialization failed:", error);
