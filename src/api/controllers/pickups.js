@@ -13,27 +13,33 @@ const geocoder = NodeGeocoder(options);
 // @access  Private (assuming user needs to be logged in)
 const createPickupRequest = async (req, res) => {
   try {
-    const userId = req.user?.id;
+    // Assuming userId is available from auth middleware (e.g., req.user.id)
+    // If not, you might need to pass it in the request body or adjust
+    // Get userId from the protect middleware
+    const userId = req.user?.id; // Use the id from the authenticated user
     if (!userId) {
+      // This case should ideally be caught by the protect middleware itself
       return res.status(401).json({ message: 'User not authenticated or ID missing' });
     }
 
-    const { address, pickupDateTime, subscription, wasteType, amount, unit, route } = req.body;
+    const { address, pickupDateTime, subscription, wasteType, amount, unit } = req.body; // Removed userId from here
 
     // Basic validation
-    if (!address || !pickupDateTime || !subscription || !wasteType || !amount || !unit || !route) {
+    if (!address || !pickupDateTime || !subscription || !wasteType || !amount || !unit) {
       return res.status(400).json({ message: 'Missing required fields for pickup request' });
     }
 
+    // Removed geocoding logic as we now store the address string directly
+
     const newPickup = new Pickup({
       userId,
-      address,
+      address, // Use the address string directly from req.body
       pickupDateTime,
       subscription,
       wasteType,
       amount,
       unit,
-      route
+      // requestedTime is defaulted by schema
     });
 
     const savedPickup = await newPickup.save();
@@ -121,15 +127,16 @@ const updatePickup = async (req, res) => {
     }
 
     // Update the pickup with the request body
-    const { address, pickupDateTime, subscription, wasteType, amount, unit, route } = req.body;
+    const { address, pickupDateTime, subscription, wasteType, amount, unit } = req.body;
 
-    pickup.address = address;
+    // Removed geocoding logic
+
+    pickup.address = address; // Update the address field directly
     pickup.pickupDateTime = pickupDateTime;
     pickup.subscription = subscription;
     pickup.wasteType = wasteType;
     pickup.amount = amount;
     pickup.unit = unit;
-    pickup.route = route;
 
     const updatedPickup = await pickup.save();
 
