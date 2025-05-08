@@ -6,6 +6,11 @@ const pickupSchema = new mongoose.Schema({
     ref: 'User', // Assuming you have a User model
     required: true,
   },
+  route: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Route',
+    required: true
+  },
   address: { // Changed from pickupLocation object to simple address string
     type: String,
     required: true,

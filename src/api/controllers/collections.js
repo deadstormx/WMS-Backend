@@ -9,13 +9,16 @@ const createCollection = async (req, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const { type, amount, notes, status } = req.body;
+    const { type, amount, notes, status, route } = req.body;
 
-    // No type validation, allow any string
+    if (!route) {
+      return res.status(400).json({ message: 'Route is required' });
+    }
 
     // Create new collection
     const newCollection = new Collection({
       user: req.user.id,
+      route,
       type,
       amount: amount || 0,
       notes,
@@ -129,7 +132,7 @@ const updateCollection = async (req, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const { amount, notes, collectionDate } = req.body;
+    const { amount, notes, collectionDate, route } = req.body;
 
     const collection = await Collection.findOne({ 
       _id: req.params.id,
@@ -144,6 +147,7 @@ const updateCollection = async (req, res) => {
     collection.amount = amount || collection.amount;
     collection.notes = notes || collection.notes;
     collection.collectionDate = collectionDate || collection.collectionDate;
+    collection.route = route || collection.route;
 
     const updatedCollection = await collection.save();
 
