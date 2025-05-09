@@ -70,36 +70,39 @@ const getUserPickups = async (req, res) => {
       return res.status(401).json({ message: 'User not authenticated or ID missing' });
     }
 
-    const pickups = await Pickup.find({ userId }).sort({ pickupDateTime: -1 });
+    // Only fetch pickups for the authenticated user
+    const pickups = await Pickup.find({ userId })
+      .sort({ pickupDateTime: -1 })
+      .populate('userId', 'fullName email');
 
     res.status(200).json({
-      message: 'Pickup history retrieved successfully for user',
+      message: 'Pickup history retrieved successfully',
       pickups: pickups,
     });
   } catch (error) {
-    console.error('Error retrieving pickup history for user:', error);
-    return res.status(500).json({ message: 'Server error retrieving pickup history for user', error: error.message });
+    console.error('Error retrieving pickup history:', error);
+    return res.status(500).json({ message: 'Server error retrieving pickup history', error: error.message });
   }
 };
 
 // @desc    Get all pickup history (for admin)
 // @route   GET /api/admin/pickups/history
-// @access  Private (Admin) - Ideally behind admin auth middleware
+// @access  Private (Admin)
 const getAllPickupsForAdmin = async (req, res) => {
   try {
     // Fetch all pickups and populate user details
     const allPickups = await Pickup.find({})
-                                   .populate('userId', 'fullName email') 
-                                   .sort({ pickupDateTime: -1 });
+      .populate('userId', 'fullName email')
+      .sort({ pickupDateTime: -1 });
 
     res.status(200).json({
-      message: 'All pickup history retrieved successfully (admin)',
+      message: 'All pickup history retrieved successfully',
       count: allPickups.length,
       pickups: allPickups,
     });
   } catch (error) {
-    console.error('Error retrieving all pickup history (admin):', error);
-    return res.status(500).json({ message: 'Server error retrieving all pickup history (admin)', error: error.message });
+    console.error('Error retrieving all pickup history:', error);
+    return res.status(500).json({ message: 'Server error retrieving all pickup history', error: error.message });
   }
 };
 

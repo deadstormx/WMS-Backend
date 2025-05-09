@@ -5,6 +5,9 @@ const { protect } = require('../../middleware/auth'); // Import the protect midd
 const User = require('../../models/User');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const { sendEmail } = require('../../config/email');
+const otpGenerator = require('otp-generator');
+const Otp = require('../../models/Otp');
 
 // Store OTPs temporarily (in production, use Redis or similar)
 const otpStore = new Map();
@@ -24,7 +27,7 @@ router.post('/login', loginUser);
 // Protected routes
 router.post('/logout', protect, logoutUser); // Logout route remains protected
 
-// API 1: Send OTP to email
+// API 1: Send OTP to email (refactored to use sendEmail utility and Otp model)
 router.post('/send-otp', async (req, res) => {
   try {
     const { email } = req.body;
@@ -37,57 +40,52 @@ router.post('/send-otp', async (req, res) => {
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Store OTP with 5-minute expiration
-    otpStore.set(email, {
-      otp,
-      expiresAt: Date.now() + 5 * 60 * 1000
-    });
 
-    // Send email
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Password Reset OTP',
-      text: `Your OTP for password reset is: ${otp}. This OTP will expire in 5 minutes.`
-    };
+    // Save OTP to database (overwrite if exists)
+    await Otp.findOneAndUpdate(
+      { email },
+      { otp, createdAt: new Date() },
+      { upsert: true, new: true }
+    );
 
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: 'OTP sent successfully' });
+    // Use the shared sendEmail utility!
+    await sendEmail(
+      email,
+      'Password Reset OTP',
+      `Your OTP for password reset is: ${otp}. This OTP will expire in 5 minutes.`
+    );
+
+    res.status(200).json({ message: 'OTP sent successfully. Please check your email.' });
   } catch (error) {
     console.error('Error sending OTP:', error);
-    res.status(500).json({ message: 'Error sending OTP' });
+    res.status(500).json({ message: 'Error sending OTP', error: error.message });
   }
 });
 
-// API 2: Verify OTP
+// API 2: Verify OTP for password reset
 router.post('/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    const storedData = otpStore.get(email);
-    if (!storedData) {
-      return res.status(400).json({ message: 'No OTP found for this email' });
-    }
-
-    if (Date.now() > storedData.expiresAt) {
-      otpStore.delete(email);
-      return res.status(400).json({ message: 'OTP has expired' });
-    }
-
-    if (storedData.otp !== otp) {
-      return res.status(400).json({ message: 'Invalid OTP' });
+    // Find the OTP record
+    const otpRecord = await Otp.findOne({ email, otp });
+    if (!otpRecord) {
+      return res.status(400).json({ message: 'Invalid OTP or OTP expired.' });
     }
 
     // Generate a temporary token for password reset
     const resetToken = crypto.randomBytes(32).toString('hex');
-    otpStore.set(email, {
-      ...storedData,
+    // Store the resetToken in memory for now (could be improved by storing in DB)
+    if (!global.resetTokens) global.resetTokens = new Map();
+    global.resetTokens.set(email, {
       resetToken,
       tokenExpiresAt: Date.now() + 15 * 60 * 1000 // 15 minutes
     });
 
-    res.status(200).json({ 
+    // Delete the used OTP
+    await Otp.deleteOne({ email });
+
+    res.status(200).json({
       message: 'OTP verified successfully',
       resetToken
     });
@@ -97,23 +95,22 @@ router.post('/verify-otp', async (req, res) => {
   }
 });
 
-// API 3: Reset Password
+// API 3: Reset Password using resetToken
 router.post('/reset-password', async (req, res) => {
   try {
     const { email, resetToken, newPassword } = req.body;
 
-    const storedData = otpStore.get(email);
-    if (!storedData || !storedData.resetToken) {
+    // Check resetToken in memory (could be improved by storing in DB)
+    if (!global.resetTokens) {
       return res.status(400).json({ message: 'Invalid or expired reset token' });
     }
-
-    if (Date.now() > storedData.tokenExpiresAt) {
-      otpStore.delete(email);
-      return res.status(400).json({ message: 'Reset token has expired' });
+    const tokenData = global.resetTokens.get(email);
+    if (!tokenData || tokenData.resetToken !== resetToken) {
+      return res.status(400).json({ message: 'Invalid or expired reset token' });
     }
-
-    if (storedData.resetToken !== resetToken) {
-      return res.status(400).json({ message: 'Invalid reset token' });
+    if (Date.now() > tokenData.tokenExpiresAt) {
+      global.resetTokens.delete(email);
+      return res.status(400).json({ message: 'Reset token has expired' });
     }
 
     // Update password in database
@@ -121,12 +118,11 @@ router.post('/reset-password', async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
     user.password = newPassword;
     await user.save();
 
-    // Clear OTP and reset token
-    otpStore.delete(email);
+    // Clear reset token
+    global.resetTokens.delete(email);
 
     res.status(200).json({ message: 'Password reset successful' });
   } catch (error) {
