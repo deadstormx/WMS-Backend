@@ -8,48 +8,28 @@ const router = express.Router();
 
 // @route   POST /api/pickups
 // @desc    Create a new pickup request
-// @access  Private (requires authentication)
-router.post(
-  '/',
-  protect, // Apply the protect middleware
-  createPickupRequest
-);
+// @access  Public
+router.post('/', createPickupRequest);
 
 // @route   GET /api/pickups/history
 // @desc    Get pickup history for a user
-// @access  Private (requires authentication)
-router.get(
-  '/history',
-  protect,
-  getUserPickups // Use the renamed controller function
-);
+// @access  Public
+router.get('/history', getUserPickups);
 
 // @route   PUT /api/pickups/:id
 // @desc    Update a pickup request
-// @access  Private (requires authentication)
-router.put(
-  '/:id',
-  protect,
-  updatePickup
-);
+// @access  Public
+router.put('/:id', updatePickup);
 
 // @route   DELETE /api/pickups/:id
 // @desc    Cancel a pickup request
-// @access  Private (requires authentication)
-router.delete(
-  '/:id',
-  protect,
-  cancelPickup
-);
+// @access  Public
+router.delete('/:id', cancelPickup);
 
 // @route   POST /api/pickups/location
 // @desc    Add pickup location
-// @access  Private (requires authentication)
-router.post(
-  '/location',
-  protect,
-  addPickupLocation
-);
+// @access  Public
+router.post('/location', addPickupLocation);
 
 
 // Add other routes for pickup management as needed

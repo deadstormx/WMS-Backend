@@ -1,5 +1,5 @@
 const Pickup = require('../../models/Pickup');
-const User = require('../../models/User'); // Assuming you need user info
+const User = require('../../models/User');
 const NodeGeocoder = require('node-geocoder');
 
 const options = {
@@ -10,36 +10,24 @@ const geocoder = NodeGeocoder(options);
 
 // @desc    Create a new pickup request
 // @route   POST /api/pickups
-// @access  Private (assuming user needs to be logged in)
+// @access  Public
 const createPickupRequest = async (req, res) => {
   try {
-    // Assuming userId is available from auth middleware (e.g., req.user.id)
-    // If not, you might need to pass it in the request body or adjust
-    // Get userId from the protect middleware
-    const userId = req.user?.id; // Use the id from the authenticated user
-    if (!userId) {
-      // This case should ideally be caught by the protect middleware itself
-      return res.status(401).json({ message: 'User not authenticated or ID missing' });
-    }
-
-    const { address, pickupDateTime, subscription, wasteType, amount, unit } = req.body; // Removed userId from here
+    const { address, pickupDateTime, subscription, wasteType, amount, unit, userId } = req.body;
 
     // Basic validation
     if (!address || !pickupDateTime || !subscription || !wasteType || !amount || !unit) {
       return res.status(400).json({ message: 'Missing required fields for pickup request' });
     }
 
-    // Removed geocoding logic as we now store the address string directly
-
     const newPickup = new Pickup({
-      userId,
-      address, // Use the address string directly from req.body
+      userId: userId || null, // Make userId optional
+      address,
       pickupDateTime,
       subscription,
       wasteType,
       amount,
       unit,
-      // requestedTime is defaulted by schema
     });
 
     const savedPickup = await newPickup.save();
@@ -59,19 +47,17 @@ const createPickupRequest = async (req, res) => {
   }
 };
 
-// @desc    Get pickup history for a specific user
+// @desc    Get pickup history
 // @route   GET /api/pickups/history
-// @access  Private
+// @access  Public
 const getUserPickups = async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const { userId } = req.query; // Get userId from query parameters
 
-    if (!userId) {
-      return res.status(401).json({ message: 'User not authenticated or ID missing' });
-    }
-
-    // Only fetch pickups for the authenticated user
-    const pickups = await Pickup.find({ userId })
+    // If userId is provided, filter by that user, otherwise return all pickups
+    const query = userId ? { userId } : {};
+    
+    const pickups = await Pickup.find(query)
       .sort({ pickupDateTime: -1 })
       .populate('userId', 'fullName email');
 
@@ -106,18 +92,13 @@ const getAllPickupsForAdmin = async (req, res) => {
   }
 };
 
-
 // @desc    Update a pickup request
 // @route   PUT /api/pickups/:id
-// @access  Private
+// @access  Public
 const updatePickup = async (req, res) => {
   try {
     const pickupId = req.params.id;
-    const userId = req.user?.id;
-
-    if (!userId) {
-      return res.status(401).json({ message: 'User not authenticated or ID missing' });
-    }
+    const { userId } = req.body; // Get userId from request body
 
     const pickup = await Pickup.findById(pickupId);
 
@@ -125,16 +106,14 @@ const updatePickup = async (req, res) => {
       return res.status(404).json({ message: 'Pickup request not found' });
     }
 
-    if (pickup.userId.toString() !== userId) {
+    // If userId is provided, verify ownership
+    if (userId && pickup.userId && pickup.userId.toString() !== userId) {
       return res.status(403).json({ message: 'Unauthorized: You can only update your own pickup requests' });
     }
 
-    // Update the pickup with the request body
     const { address, pickupDateTime, subscription, wasteType, amount, unit } = req.body;
 
-    // Removed geocoding logic
-
-    pickup.address = address; // Update the address field directly
+    pickup.address = address;
     pickup.pickupDateTime = pickupDateTime;
     pickup.subscription = subscription;
     pickup.wasteType = wasteType;
@@ -158,15 +137,11 @@ const updatePickup = async (req, res) => {
 
 // @desc    Cancel a pickup request
 // @route   DELETE /api/pickups/:id
-// @access  Private
+// @access  Public
 const cancelPickup = async (req, res) => {
   try {
     const pickupId = req.params.id;
-    const userId = req.user?.id;
-
-    if (!userId) {
-      return res.status(401).json({ message: 'User not authenticated or ID missing' });
-    }
+    const { userId } = req.body; // Get userId from request body
 
     const pickup = await Pickup.findById(pickupId);
 
@@ -174,7 +149,8 @@ const cancelPickup = async (req, res) => {
       return res.status(404).json({ message: 'Pickup request not found' });
     }
 
-    if (pickup.userId.toString() !== userId) {
+    // If userId is provided, verify ownership
+    if (userId && pickup.userId && pickup.userId.toString() !== userId) {
       return res.status(403).json({ message: 'Unauthorized: You can only cancel your own pickup requests' });
     }
 
@@ -187,24 +163,21 @@ const cancelPickup = async (req, res) => {
   }
 };
 
-// Function to handle pickup location input (Updated for consistency)
+// @desc    Add pickup location
+// @route   POST /api/pickups/location
+// @access  Public
 const addPickupLocation = async (req, res) => {
   try {
-    // Use lowercase 'address' consistent with other functions
-    const { address, pickupDateTime, subscription, wasteType, amount, unit } = req.body;
-    const userId = req.user?.id; // Assuming user ID is available in req.user
+    const { address, pickupDateTime, subscription, wasteType, amount, unit, userId } = req.body;
 
     // Validate input data
     if (!address || !pickupDateTime || !subscription || !wasteType || !amount || !unit) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Removed geocoding logic
-
-    // Create a new Pickup object
     const pickup = new Pickup({
-      userId,
-      address, // Use the address string directly
+      userId: userId || null, // Make userId optional
+      address,
       pickupDateTime,
       subscription,
       wasteType,
@@ -212,7 +185,6 @@ const addPickupLocation = async (req, res) => {
       unit
     });
 
-    // Save the Pickup object to the database
     const savedPickup = await pickup.save();
 
     res.status(201).json({ message: 'Pickup location added successfully', pickup: savedPickup });
@@ -223,10 +195,10 @@ const addPickupLocation = async (req, res) => {
 };
 
 module.exports = {
-  createPickupRequest: createPickupRequest,
-  getUserPickups: getUserPickups, // Renamed from getPickupHistory
-  getAllPickupsForAdmin: getAllPickupsForAdmin,
-  updatePickup: updatePickup,
-  cancelPickup: cancelPickup,
-  addPickupLocation: addPickupLocation
+  createPickupRequest,
+  getUserPickups,
+  getAllPickupsForAdmin,
+  updatePickup,
+  cancelPickup,
+  addPickupLocation
 };
