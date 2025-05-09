@@ -27,7 +27,7 @@ router.post('/login', loginUser);
 // Protected routes
 router.post('/logout', protect, logoutUser); // Logout route remains protected
 
-// API 1: Send OTP to email
+// API 1: Send OTP to email (refactored to use sendEmail utility and Otp model)
 router.post('/send-otp', async (req, res) => {
   try {
     const { email } = req.body;
@@ -40,26 +40,25 @@ router.post('/send-otp', async (req, res) => {
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Store OTP with 5-minute expiration
-    otpStore.set(email, {
-      otp,
-      expiresAt: Date.now() + 5 * 60 * 1000
-    });
 
-    // Send email
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Password Reset OTP',
-      text: `Your OTP for password reset is: ${otp}. This OTP will expire in 5 minutes.`
-    };
+    // Save OTP to database (overwrite if exists)
+    await Otp.findOneAndUpdate(
+      { email },
+      { otp, createdAt: new Date() },
+      { upsert: true, new: true }
+    );
 
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: 'OTP sent successfully' });
+    // Use the shared sendEmail utility!
+    await sendEmail(
+      email,
+      'Password Reset OTP',
+      `Your OTP for password reset is: ${otp}. This OTP will expire in 5 minutes.`
+    );
+
+    res.status(200).json({ message: 'OTP sent successfully. Please check your email.' });
   } catch (error) {
     console.error('Error sending OTP:', error);
-    res.status(500).json({ message: 'Error sending OTP' });
+    res.status(500).json({ message: 'Error sending OTP', error: error.message });
   }
 });
 
