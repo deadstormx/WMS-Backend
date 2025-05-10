@@ -2,14 +2,18 @@ const Collection = require('../../models/Collection');
 
 // @desc    Create a new collection
 // @route   POST /api/collections
-// @access  Public
+// @access  Private
 const createCollection = async (req, res) => {
   try {
-    const { type, amount, notes, status, userId } = req.body;
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    const { type, amount, notes, status } = req.body;
 
     // Create new collection
     const newCollection = new Collection({
-      user: userId || null, // Make userId optional
+      user: req.user.id,
       type,
       amount: amount || 0,
       notes,
@@ -33,17 +37,16 @@ const createCollection = async (req, res) => {
   }
 };
 
-// @desc    Get all collections
+// @desc    Get all collections for the logged-in user
 // @route   GET /api/collections
-// @access  Public
+// @access  Private
 const getCollections = async (req, res) => {
   try {
-    const { userId } = req.query; // Get userId from query parameters
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
 
-    // If userId is provided, filter by that user, otherwise return all collections
-    const query = userId ? { user: userId } : {};
-    
-    const collections = await Collection.find(query)
+    const collections = await Collection.find({ user: req.user.id })
       .sort({ collectionDate: -1 });
 
     res.status(200).json({
@@ -59,20 +62,18 @@ const getCollections = async (req, res) => {
 
 // @desc    Get collections by type
 // @route   GET /api/collections/:type
-// @access  Public
+// @access  Private
 const getCollectionsByType = async (req, res) => {
   try {
-    const { type } = req.params;
-    const { userId } = req.query; // Get userId from query parameters
-
-    // Build query based on type and optional userId
-    const query = { type };
-    if (userId) {
-      query.user = userId;
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const collections = await Collection.find(query)
-      .sort({ collectionDate: -1 });
+    const { type } = req.params;
+    const collections = await Collection.find({ 
+      user: req.user.id,
+      type 
+    }).sort({ collectionDate: -1 });
 
     res.status(200).json({
       success: true,
@@ -87,18 +88,17 @@ const getCollectionsByType = async (req, res) => {
 
 // @desc    Get single collection by ID
 // @route   GET /api/collections/:id
-// @access  Public
+// @access  Private
 const getCollectionById = async (req, res) => {
   try {
-    const { userId } = req.query; // Get userId from query parameters
-
-    // Build query based on ID and optional userId
-    const query = { _id: req.params.id };
-    if (userId) {
-      query.user = userId;
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const collection = await Collection.findOne(query);
+    const collection = await Collection.findOne({ 
+      _id: req.params.id,
+      user: req.user.id
+    });
 
     if (!collection) {
       return res.status(404).json({ message: 'Collection not found' });
@@ -119,18 +119,19 @@ const getCollectionById = async (req, res) => {
 
 // @desc    Update collection
 // @route   PUT /api/collections/:id
-// @access  Public
+// @access  Private
 const updateCollection = async (req, res) => {
   try {
-    const { amount, notes, collectionDate, userId } = req.body;
-
-    // Build query based on ID and optional userId
-    const query = { _id: req.params.id };
-    if (userId) {
-      query.user = userId;
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const collection = await Collection.findOne(query);
+    const { amount, notes, collectionDate } = req.body;
+
+    const collection = await Collection.findOne({ 
+      _id: req.params.id,
+      user: req.user.id
+    });
 
     if (!collection) {
       return res.status(404).json({ message: 'Collection not found' });
@@ -159,18 +160,17 @@ const updateCollection = async (req, res) => {
 
 // @desc    Delete collection
 // @route   DELETE /api/collections/:id
-// @access  Public
+// @access  Private
 const deleteCollection = async (req, res) => {
   try {
-    const { userId } = req.body;
-
-    // Build query based on ID and optional userId
-    const query = { _id: req.params.id };
-    if (userId) {
-      query.user = userId;
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const collection = await Collection.findOne(query);
+    const collection = await Collection.findOne({ 
+      _id: req.params.id,
+      user: req.user.id
+    });
 
     if (!collection) {
       return res.status(404).json({ message: 'Collection not found' });
