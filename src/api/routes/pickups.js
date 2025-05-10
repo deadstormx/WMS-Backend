@@ -8,28 +8,28 @@ const router = express.Router();
 
 // @route   POST /api/pickups
 // @desc    Create a new pickup request
-// @access  Public
-router.post('/', createPickupRequest);
+// @access  Private
+router.post('/', protect, createPickupRequest);
 
 // @route   GET /api/pickups/history
 // @desc    Get pickup history for a user
-// @access  Public
-router.get('/history', getUserPickups);
+// @access  Private
+router.get('/history', protect, getUserPickups);
 
 // @route   PUT /api/pickups/:id
 // @desc    Update a pickup request
-// @access  Public
-router.put('/:id', updatePickup);
+// @access  Private
+router.put('/:id', protect, updatePickup);
 
 // @route   DELETE /api/pickups/:id
 // @desc    Cancel a pickup request
-// @access  Public
-router.delete('/:id', cancelPickup);
+// @access  Private
+router.delete('/:id', protect, cancelPickup);
 
 // @route   POST /api/pickups/location
 // @desc    Add pickup location
-// @access  Public
-router.post('/location', addPickupLocation);
+// @access  Private
+router.post('/location', protect, addPickupLocation);
 
 
 // Add other routes for pickup management as needed
