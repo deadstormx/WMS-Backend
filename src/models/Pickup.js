@@ -33,7 +33,6 @@ const pickupSchema = new mongoose.Schema({
   },
   wasteType: {
     type: String,
-    enum: ['organic', 'recyclable','non-recyclable', 'all'],
     required: true,
   },
   amount: {
