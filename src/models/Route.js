@@ -14,7 +14,7 @@ const routeSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['In Progress', 'Scheduled', 'No Schedule'],
+        enum: ['In Progress', 'Scheduled', 'No Schedule', 'Completed'],
         default: 'No Schedule'
     }
 }, {

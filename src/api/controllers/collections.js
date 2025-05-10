@@ -141,6 +141,7 @@ const updateCollection = async (req, res) => {
     collection.amount = amount || collection.amount;
     collection.notes = notes || collection.notes;
     collection.collectionDate = collectionDate || collection.collectionDate;
+    collection.route = route || collection.route;
 
     const updatedCollection = await collection.save();
 

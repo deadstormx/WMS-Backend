@@ -4,18 +4,21 @@ const routeController = require('../controllers/routeController');
 const { protect } = require('../../middleware/auth');
 
 // Add a new route
-router.post('/route/add-route', protect, routeController.addRoute);
+router.post('/add-route', protect, routeController.addRoute);
 
 // Get all routes
-router.get('/route/get-routes', protect, routeController.getAllRoutes);
+router.get('/get-routes', protect, routeController.getAllRoutes);
 
 // Get route by ID
-router.get('/route/get-route/:routeId', protect, routeController.getRouteById);
+router.get('/get-route/:routeId', protect, routeController.getRouteById);
 
 // Update route
-router.put('/route/update-route/:routeId', protect, routeController.updateRoute);
+router.put('/update-route/:routeId', protect, routeController.updateRoute);
+
+// Start route
+router.post('/start-route/:routeId', protect, routeController.startRoute);
 
 // Delete route
-router.delete('/route/delete-route/:routeId', protect, routeController.deleteRoute);
+router.delete('/delete-route/:routeId', protect, routeController.deleteRoute);
 
 module.exports = router; 

@@ -6,6 +6,11 @@ const collectionSchema = new mongoose.Schema({
     ref: 'User',
     required: false
   },
+  route: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Route',
+    required: true
+  },
   type: {
     type: String,
     required: true
