@@ -1,4 +1,5 @@
 const Collection = require('../../models/Collection');
+const Pickup = require('../../models/Pickup');
 
 // @desc    Create a new collection
 // @route   POST /api/collections
@@ -39,13 +40,53 @@ const getCollections = async (req, res) => {
     const { userId } = req.query;
     const query = userId ? { user: userId } : {};
 
-    const collections = await Collection.find(query).sort({ createdAt: -1 });
+    // Step 1: Aggregate pickups by lowercase wasteType
+    const pickupSums = await Pickup.aggregate([
+      {
+        $group: {
+          _id: { $toLower: "$wasteType" },
+          totalAmountKg: {
+            $sum: {
+              $cond: [
+                { $eq: ["$unit", "g"] },
+                { $divide: ["$amount", 1000] },
+                "$amount"
+              ]
+            }
+          }
+        }
+      }
+    ]);
+
+    // Step 2: Create a map from wasteType -> totalAmount
+    const pickupMap = {};
+    pickupSums.forEach(p => {
+      pickupMap[p._id] = p.totalAmountKg;
+    });
+
+    // Step 3: Fetch all existing collections
+    const collections = await Collection.find(query);
+
+    // Step 4: Update each collection based on matching wasteType (case-insensitive)
+    for (const col of collections) {
+      const wasteTypeLower = col.type.toLowerCase();
+      const newAmount = pickupMap[wasteTypeLower] ?? 0;
+
+      if (col.amount !== newAmount) {
+        col.amount = newAmount;
+        await col.save();
+      }
+    }
+
+    // Step 5: Return the updated collections
+    const updatedCollections = await Collection.find(query).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      count: collections.length,
-      collections
+      count: updatedCollections.length,
+      collections: updatedCollections
     });
+
   } catch (error) {
     console.error("Error fetching collections:", error);
     res.status(500).json({ message: 'An error occurred while fetching collections.' });

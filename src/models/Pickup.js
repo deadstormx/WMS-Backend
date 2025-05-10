@@ -20,7 +20,6 @@ const pickupSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'completed', 'cancelled'],
     default: 'pending',
   },
   pickupDateTime: {

@@ -1,4 +1,5 @@
 const Route = require('../../models/Route');
+const Pickup = require('../../models/Pickup');
 
 // Add a new route
 exports.addRoute = async (req, res) => {
@@ -130,7 +131,7 @@ exports.updateRoute = async (req, res) => {
     }
 };
 
-// Start route
+
 exports.startRoute = async (req, res) => {
     try {
         const { routeId } = req.params;
@@ -158,10 +159,19 @@ exports.startRoute = async (req, res) => {
         route.updatedAt = new Date();
         await route.save();
 
+        // Update pickups related to this route
+        const updatedPickups = await Pickup.updateMany(
+            { route: route.routeName, status: 'pending' }, // assuming routeName in Route matches Pickup.route
+            { $set: { status: 'completed' } }
+        );
+
         res.status(200).json({
             success: true,
-            message: 'Route started successfully',
-            data: route
+            message: 'Route started successfully and related pickups updated',
+            data: {
+                route,
+                pickupsModified: updatedPickups.modifiedCount
+            }
         });
     } catch (error) {
         res.status(500).json({
@@ -171,6 +181,7 @@ exports.startRoute = async (req, res) => {
         });
     }
 };
+
 
 // Delete route
 exports.deleteRoute = async (req, res) => {
