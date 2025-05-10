@@ -10,6 +10,10 @@ const pickupSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  route:{
+    type: String,
+    required: true,
+  },
   requestedTime: {
     type: Date,
     default: Date.now,

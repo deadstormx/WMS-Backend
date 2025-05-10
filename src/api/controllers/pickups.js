@@ -13,16 +13,17 @@ const geocoder = NodeGeocoder(options);
 // @access  Public
 const createPickupRequest = async (req, res) => {
   try {
-    const { address, pickupDateTime, subscription, wasteType, amount, unit, userId } = req.body;
+    const { address,route, pickupDateTime, subscription, wasteType, amount, unit, userId } = req.body;
 
     // Basic validation
-    if (!address || !pickupDateTime || !subscription || !wasteType || !amount || !unit) {
+    if (!address ||!route || !pickupDateTime || !subscription || !wasteType || !amount || !unit) {
       return res.status(400).json({ message: 'Missing required fields for pickup request' });
     }
 
     const newPickup = new Pickup({
       userId: userId || null, // Make userId optional
       address,
+      route,
       pickupDateTime,
       subscription,
       wasteType,
@@ -111,9 +112,10 @@ const updatePickup = async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized: You can only update your own pickup requests' });
     }
 
-    const { address, pickupDateTime, subscription, wasteType, amount, unit } = req.body;
+    const { address,route, pickupDateTime, subscription, wasteType, amount, unit } = req.body;
 
     pickup.address = address;
+    pickup.route = route;
     pickup.pickupDateTime = pickupDateTime;
     pickup.subscription = subscription;
     pickup.wasteType = wasteType;
@@ -168,16 +170,17 @@ const cancelPickup = async (req, res) => {
 // @access  Public
 const addPickupLocation = async (req, res) => {
   try {
-    const { address, pickupDateTime, subscription, wasteType, amount, unit, userId } = req.body;
+    const { address, route, pickupDateTime, subscription, wasteType, amount, unit, userId } = req.body;
 
     // Validate input data
-    if (!address || !pickupDateTime || !subscription || !wasteType || !amount || !unit) {
+    if (!address ||!route || !pickupDateTime || !subscription || !wasteType || !amount || !unit) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
     const pickup = new Pickup({
       userId: userId || null, // Make userId optional
       address,
+      route,
       pickupDateTime,
       subscription,
       wasteType,

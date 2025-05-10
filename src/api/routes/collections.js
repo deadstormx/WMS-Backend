@@ -7,38 +7,37 @@ const {
   updateCollection,
   deleteCollection
 } = require('../controllers/collections');
-const { protect } = require('../../middleware/auth');
 
 const router = express.Router();
 
 // @route   POST /api/collections
 // @desc    Create a new collection
-// @access  Private
-router.post('/', protect, createCollection);
+// @access  Public
+router.post('/', createCollection);
 
 // @route   GET /api/collections
-// @desc    Get all collections for the logged-in user
-// @access  Private
-router.get('/', protect, getCollections);
+// @desc    Get all collections
+// @access  Public
+router.get('/', getCollections);
 
 // @route   GET /api/collections/:type
 // @desc    Get collections by type
-// @access  Private
-router.get('/:type', protect, getCollectionsByType);
+// @access  Public
+router.get('/:type', getCollectionsByType);
 
 // @route   GET /api/collections/:id
 // @desc    Get single collection by ID
-// @access  Private
-router.get('/:id', protect, getCollectionById);
+// @access  Public
+router.get('/:id', getCollectionById);
 
 // @route   PUT /api/collections/:id
 // @desc    Update a collection
-// @access  Private
-router.put('/:id', protect, updateCollection);
+// @access  Public
+router.put('/:id', updateCollection);
 
 // @route   DELETE /api/collections/:id
 // @desc    Delete a collection
-// @access  Private
-router.delete('/:id', protect, deleteCollection);
+// @access  Public
+router.delete('/:id', deleteCollection);
 
 module.exports = router; 

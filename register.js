@@ -59,7 +59,7 @@ async function initialize() {
     app.use('/api/pickups', pickupRoutes); // Mount user pickup routes
     app.use('/api/admin/pickups', pickupAdminRoutes); // Mount admin pickup routes
     app.use('/api/collections', collectionRoutes); // Mount collection routes
-    app.use('/api', routeRoutes); // Mount route routes
+    app.use('/api/route', routeRoutes); // Mount route routes at /api/route
 
     app.listen(port, () => {
       console.log(`Server listening at http://localhost:${port}`);

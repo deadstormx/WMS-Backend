@@ -17,12 +17,6 @@ const collectionSchema = new mongoose.Schema({
   notes: {
     type: String,
     default: ''
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'completed', 'cancelled'],
-    default: 'pending',
-    required: true
   }
 }, {
   timestamps: true

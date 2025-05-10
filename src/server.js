@@ -11,6 +11,7 @@ const collectionRoutes = require('./api/routes/collections');
 const authRoutes = require('./api/routes/auth');
 const pickupRoutes = require('./api/routes/pickups');
 
+
 // Initialize express app
 const app = express();
 
