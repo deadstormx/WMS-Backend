@@ -3,6 +3,7 @@ const Otp = require('../../models/Otp');
 const { sendEmail } = require('../../config/email');
 const otpGenerator = require('otp-generator');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 async function registerUser(req, res) {
   const { fullName, email, phoneNumber, password, address } = req.body;
@@ -150,7 +151,7 @@ async function deleteAccount(req, res) {
 async function updateUserDetails(req, res) {
   try {
     const userId = req.user._id;
-    const { fullName, phoneNumber, address, currentPassword, newPassword } = req.body;
+    const { fullName, email } = req.body;
 
     // Find the user
     const user = await User.findById(userId);
@@ -158,41 +159,51 @@ async function updateUserDetails(req, res) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Update basic details
-    if (fullName) user.fullName = fullName;
-    if (address) user.address = address;
+    // Update name if provided
+    if (fullName) {
+      user.fullName = fullName;
+    }
 
-    // Update phone number if provided and different
-    if (phoneNumber && phoneNumber !== user.phoneNumber) {
-      // Check if phone number is already in use
-      const existingUser = await User.findOne({ phoneNumber });
+    // Update email if provided and different
+    if (email && email !== user.email) {
+      // Check if email is already in use
+      const existingUser = await User.findOne({ email });
       if (existingUser) {
-        return res.status(400).json({ message: 'Phone number already in use' });
+        return res.status(400).json({ message: 'Email already in use' });
       }
-      user.phoneNumber = phoneNumber;
+
+      // Update the email
+      user.email = email;
+
+      // Generate new JWT token with updated email
+      const token = jwt.sign(
+        { id: user._id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+
+      // Save the updated user
+      await user.save();
+
+      return res.status(200).json({
+        message: 'User details updated successfully',
+        user: {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email
+        },
+        token: token // Send new token with updated email
+      });
     }
 
-    // Update password if provided
-    if (currentPassword && newPassword) {
-      // Verify current password
-      const isMatch = await bcrypt.compare(currentPassword, user.password);
-      if (!isMatch) {
-        return res.status(400).json({ message: 'Current password is incorrect' });
-      }
-      user.password = newPassword;
-    }
-
-    // Save the updated user
+    // If only name was updated, save and return without new token
     await user.save();
-
     res.status(200).json({
       message: 'User details updated successfully',
       user: {
         id: user._id,
         fullName: user.fullName,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        address: user.address
+        email: user.email
       }
     });
   } catch (error) {
