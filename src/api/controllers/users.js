@@ -2,6 +2,7 @@ const User = require('../../models/User');
 const Otp = require('../../models/Otp');
 const { sendEmail } = require('../../config/email');
 const otpGenerator = require('otp-generator');
+const bcrypt = require('bcrypt');
 
 async function registerUser(req, res) {
   const { fullName, email, phoneNumber, password, address } = req.body;
@@ -119,4 +120,88 @@ async function verifyOtp(req, res) {
   }
 }
 
-module.exports = { registerUser, verifyOtp };
+async function deleteAccount(req, res) {
+  try {
+    const userId = req.user._id;
+
+    // Delete the user
+    const deletedUser = await User.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ 
+      message: 'Account deleted successfully',
+      user: {
+        id: deletedUser._id,
+        email: deletedUser.email
+      }
+    });
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    res.status(500).json({ 
+      message: 'An error occurred while deleting the account', 
+      error: error.message 
+    });
+  }
+}
+
+async function updateUserDetails(req, res) {
+  try {
+    const userId = req.user._id;
+    const { fullName, phoneNumber, address, currentPassword, newPassword } = req.body;
+
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update basic details
+    if (fullName) user.fullName = fullName;
+    if (address) user.address = address;
+
+    // Update phone number if provided and different
+    if (phoneNumber && phoneNumber !== user.phoneNumber) {
+      // Check if phone number is already in use
+      const existingUser = await User.findOne({ phoneNumber });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Phone number already in use' });
+      }
+      user.phoneNumber = phoneNumber;
+    }
+
+    // Update password if provided
+    if (currentPassword && newPassword) {
+      // Verify current password
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Current password is incorrect' });
+      }
+      user.password = newPassword;
+    }
+
+    // Save the updated user
+    await user.save();
+
+    res.status(200).json({
+      message: 'User details updated successfully',
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        address: user.address
+      }
+    });
+  } catch (error) {
+    console.error("Error updating user details:", error);
+    res.status(500).json({ 
+      message: 'An error occurred while updating user details', 
+      error: error.message 
+    });
+  }
+}
+
+module.exports = { registerUser, verifyOtp, deleteAccount, updateUserDetails };
