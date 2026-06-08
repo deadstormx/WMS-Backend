@@ -33,12 +33,13 @@ async function loginUser(req, res) {
     res.status(200).json({
       message: 'Login successful!',
       success: true,
-      token: token, // Include the token in the response
-      user: { // Optionally send back some user info (excluding password)
+      token: token,
+      user: {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        address: user.address // Include the address here
+        address: user.address,
+        avatar: user.avatar // Include the avatar in the response
       }
     });
   } catch (error) {

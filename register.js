@@ -1,3 +1,6 @@
+// Load environment variables first
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -11,7 +14,6 @@ const routeRoutes = require('./src/api/routes/routeRoutes'); // Import route rou
 const connectDB = require('./src/db/db');
 const requestLogger = require('./src/middleware/requestLogger');
 const User = require('./src/models/User'); // Import User model
-require('dotenv').config();
 
 app.use(cors({
   origin: process.env.CORS_ORIGIN,
@@ -25,8 +27,8 @@ app.use(express.static(__dirname + '/src/utils')); // Add this line
 // Function to create default admin user if not exists
 const createDefaultAdmin = async () => {
   try {
-    const adminEmail = 'admin@556';
-    const adminPassword = 'adminpower'; // Use a strong password in production!
+   const adminEmail = 'greenbinpvtltd@gmail.com';
+const adminPassword = 'admin@1234';// Use a strong password in production!
 
     const existingAdmin = await User.findOne({ email: adminEmail });
 

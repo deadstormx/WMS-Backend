@@ -4,6 +4,10 @@ const { sendEmail } = require('../../config/email');
 const otpGenerator = require('otp-generator');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const cloudinary = require('../../config/cloudinary');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
+const Pickup = require('../../models/Pickup');
 
 async function registerUser(req, res) {
   const { fullName, email, phoneNumber, password, address } = req.body;
@@ -125,6 +129,9 @@ async function deleteAccount(req, res) {
   try {
     const userId = req.user._id;
 
+    // Delete all pickup requests associated with the user
+    await Pickup.deleteMany({ userId: userId });
+
     // Delete the user
     const deletedUser = await User.findByIdAndDelete(userId);
 
@@ -133,7 +140,7 @@ async function deleteAccount(req, res) {
     }
 
     res.status(200).json({ 
-      message: 'Account deleted successfully',
+      message: 'Account and associated pickup requests deleted successfully',
       user: {
         id: deletedUser._id,
         email: deletedUser.email
@@ -215,4 +222,106 @@ async function updateUserDetails(req, res) {
   }
 }
 
-module.exports = { registerUser, verifyOtp, deleteAccount, updateUserDetails };
+// Test Cloudinary connection
+async function testCloudinaryConnection(req, res) {
+  try {
+    const result = await cloudinary.uploader.upload('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', {
+      folder: 'test_uploads',
+      resource_type: 'auto'
+    });
+    res.status(200).json({ 
+      message: 'Cloudinary connection successful',
+      result 
+    });
+  } catch (error) {
+    console.error('Cloudinary connection test failed:', error);
+    res.status(500).json({ 
+      message: 'Cloudinary connection failed',
+      error: error.message,
+      details: error.error || error
+    });
+  }
+}
+
+async function uploadAvatar(req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image file provided' });
+    }
+
+    console.log('File received:', {
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    });
+
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Convert buffer to base64
+    const b64 = Buffer.from(req.file.buffer).toString('base64');
+    const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+
+    console.log('Attempting to upload to Cloudinary...');
+    
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'user_avatars',
+      resource_type: 'auto'
+    });
+
+    console.log('Cloudinary upload successful:', result);
+
+    // Delete old avatar from Cloudinary if exists
+    if (user.avatar?.cloudinaryId) {
+      try {
+        await cloudinary.uploader.destroy(user.avatar.cloudinaryId);
+        console.log('Old avatar deleted successfully');
+      } catch (deleteError) {
+        console.error('Error deleting old avatar:', deleteError);
+        // Continue with the update even if deletion fails
+      }
+    }
+
+    // Update user avatar in database
+    user.avatar = {
+      cloudinaryId: result.public_id,
+      url: result.secure_url
+    };
+    await user.save();
+
+    console.log('User avatar updated in database');
+
+    res.status(200).json({
+      message: 'Avatar uploaded successfully',
+      avatar: user.avatar
+    });
+  } catch (error) {
+    console.error('Error uploading avatar:', error);
+    // Log more detailed error information
+    console.error('Error details:', {
+      message: error.message,
+      error: error.error,
+      stack: error.stack
+    });
+    res.status(500).json({ 
+      message: 'An error occurred while uploading avatar',
+      error: error.message,
+      details: error.error || error
+    });
+  }
+}
+
+module.exports = { 
+  registerUser, 
+  verifyOtp, 
+  deleteAccount, 
+  updateUserDetails,
+  uploadAvatar,
+  testCloudinaryConnection,
+  upload // Export multer middleware
+};
