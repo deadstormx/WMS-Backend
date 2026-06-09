@@ -16,7 +16,7 @@ const requestLogger = require('./src/middleware/requestLogger');
 const User = require('./src/models/User'); // Import User model
 
 app.use(cors({
-  origin: process.env.CORS_ORIGIN,
+   origin: '*',
   credentials: true
 }));
 
